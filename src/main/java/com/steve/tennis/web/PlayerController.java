@@ -1,7 +1,8 @@
 package com.steve.tennis.web;
 
 import com.steve.tennis.Player;
-import com.steve.tennis.PlayerList;
+import com.steve.tennis.PlayerToSave;
+import com.steve.tennis.service.PlayerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -10,15 +11,18 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
 import java.util.List;
 
 @Tag(name = "Tennis Players API")
 @RestController
 @RequestMapping("/players")
 public class PlayerController {
+
+    @Autowired
+    private PlayerService playerService;
 
     @Operation(summary = "Finds players", description = "Finds players")
     @ApiResponses(value = {
@@ -29,47 +33,49 @@ public class PlayerController {
     })
     @GetMapping
     public List<Player> list() {
-        return PlayerList.ALL;
+        return playerService.getAllPlayers();
     }
 
     @Operation(summary = "Finds a player", description = "Finds a player")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Player",
                     content = {@Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Player.class))})
-
+                            schema = @Schema(implementation = Player.class))}),
+            @ApiResponse(responseCode = "404", description = "A player with the specified last name was not found",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Error.class))})
     })
     @GetMapping("{lastName}")
     public Player getByLastName(@PathVariable("lastName") String lastName) {
-        return PlayerList.ALL
-                .stream()
-                .filter(player -> player.lastName().equalsIgnoreCase(lastName))
-                .findFirst()
-                .orElseThrow();
+        return playerService.getByLastName(lastName);
     }
 
     @Operation(summary = "Creates a player", description = "Creates a player")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Created player",
                     content = {@Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Player.class))})
-
+                            schema = @Schema(implementation = PlayerToSave.class))})
     })
     @PostMapping
-    public Player createPlayer(@RequestBody @Valid Player player) {
-        return player;
+    public Player createPlayer(@RequestBody @Valid PlayerToSave playerToSave) {
+
+        return playerService.create(playerToSave);
     }
 
     @Operation(summary = "Updates a player", description = "Updates a player")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Updated player",
                     content = {@Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Player.class))})
+                            schema = @Schema(implementation = PlayerToSave.class))}),
+            @ApiResponse(responseCode = "404", description = "Player with specified last name was not found.",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Error.class))})
 
     })
     @PutMapping
-    public Player updatePlayer(@RequestBody @Valid Player player) {
-        return player;
+    public Player updatePlayer(@RequestBody @Valid PlayerToSave playerToSave) {
+
+        return playerService.update(playerToSave);
     }
 
     @Operation(summary = "Deletes a player", description = "Deletes a player")

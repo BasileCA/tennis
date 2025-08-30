@@ -1,5 +1,7 @@
 package com.steve.tennis.web;
 
+import com.steve.tennis.Error;
+import com.steve.tennis.service.PlayerNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -13,9 +15,11 @@ import java.util.Map;
 @RestControllerAdvice
 public class PlayerControllerErrorHandler {
 
-    @ExceptionHandler(NoSuchFieldException.class)
+    @ExceptionHandler(PlayerNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public void handleNoElementException(){}
+    public Error handlePlayerNotFoundException(PlayerNotFoundException ex) {
+        return new Error(ex.getMessage());
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
