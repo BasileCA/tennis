@@ -45,6 +45,16 @@ public class PlayerService {
                 .findFirst().get();
     }
 
+    public void delete(String lastName) {
+        Player playerToDelete = getByLastName(lastName);
+
+        PlayerList.ALL = PlayerList.ALL.stream()
+                .filter(player -> !player.lastName().equals(lastName))
+                .toList();
+
+        RankingCalculator rankingCalculator = new RankingCalculator(PlayerList.ALL);
+        rankingCalculator.getNewPlayersRanking();
+    }
     private Player getPlayerNewRanking(List<Player> existingPlayers, PlayerToSave playerToSave) {
         RankingCalculator rankingCalculator = new RankingCalculator(existingPlayers, playerToSave);
         List<Player> players = rankingCalculator.getNewPlayersRanking();
